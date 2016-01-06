@@ -1,0 +1,2 @@
+Centroid: ref
+Distance: 0.06285
