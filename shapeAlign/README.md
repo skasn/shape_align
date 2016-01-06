@@ -5,15 +5,16 @@ shapeAlign is a C++ implementation of an approach for sequence-agnostic alignmen
 
 `test/` contains a Perl script for generating simulated data for alignment.
 
+`utils/` contains scripts for generating gnuplot heatmaps and performing other analyses.
+
 **Compilation & Dependencies**
 
-Typing `make` should compile shapeAlign. Note that [GSL](http://www.gnu.org/software/gsl/) is required (GSL matrices and the GSL BLAS interface are used extensively).
+Typing `make` should compile shapeAlign. *Note* that [GSL](http://www.gnu.org/software/gsl/) is required (GSL matrices and the GSL BLAS interface are used extensively).
+[OpenMP](http://openmp.org/wp/) is used for parallelization of centroid finding.
 
 **Usage**
 
-`./shapeAlign` without any arguments should display a help message.
-
-General usage:
+`./shapeAlign` without any arguments displays the following help message:
 
 ```
 Usage:   shapeAlign [OPTIONS] -n <site name file> -f <shape file 1> ... <shape file n> 
