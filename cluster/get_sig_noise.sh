@@ -28,6 +28,7 @@ BED=$1
 ENDS_DIR=$2
 
 WIN=25  # Half window width for calculating signal:noise
+BGW=25
 
 NULL=NA  # How to represent missing values? Represent as NA.
 
@@ -62,7 +63,11 @@ MID=${PREFIX}.mid.bed
 bedmid.pl ${BED}
 bedtools slop -b ${WIN} -i ${MID} -g ${SC3_SIZES} > ${PREFIX}.win$((WIN*2+1)).bed
 rm ${MID}
-BED=${PREFIX}.win$((WIN*2+1)).bed  # Redefine the BED file as the windowed BED
+BED=${PREFIX}.win$((WIN*2+1)).bed  # Redefine the BED file as the windowed
+
+# Define background regions
+BGBED=${PREFIX%.*}.bg.bed
+bedtools slop -b ${BGW} -i ${BED} -g ${SC3_SIZES} > ${BGBED}
 
 # Loop over all of the raw data files and compute the signal:noise
 for RAWBED in `ls ${ENDS_DIR}`
@@ -73,16 +78,13 @@ do
   bedtools map -null "${NULL}" -a ${BED} -b ${ENDS_DIR}/${RAWBED} -c 4 -o sum | \
     awk '{print $12}' >  ${PREFIX}.${RAWBED}.sum
 
-  # Get max value in peak windows
-  # bedtools map -a ${BED} -b ${ENDS_DIR}/${RAWBED} -c 4 -o max | \
-  #   awk '{print $12}' >  ${PREFIX}.${RAWBED}.max
+  # Get sums across background windows
+  bedtools map -null "${NULL}" -a ${BGBED} -b ${ENDS_DIR}/${RAWBED} -c 4 -o sum | \
+    awk '{print $12}' > ${PREFIX}.${RAWBED}.bg.sum
 
-  # Link the sum and max and compute the signal:noise ratio
-  # paste ${PREFIX}.${RAWBED}.max ${PREFIX}.${RAWBED}.sum | \
-  #   awk '{if ($2 > 0) {print $1/$2} else {print "NA"}}' \
-  #   > ${PREFIX}.${RAWBED}.stats
-
-  paste ${PREFIX}.${RAWBED}.sum > ${PREFIX}.${RAWBED}.stats
+  paste ${PREFIX}.${RAWBED}.sum ${PREFIX}.${RAWBED}.bg.sum | \
+    awk '{if ($2-$1>0 && $2!="NA") {print $1/($2-$1)} else {print "NA"}}' > \
+    ${PREFIX}.${RAWBED}.stats
 
   # Clean up
   rm ${PREFIX}.${RAWBED}.max
@@ -112,6 +114,6 @@ END {
 
 # Final clean up
 rm ${PREFIX}.*.stats    # Stats files
-rm ${BED}               # Windowed BED
+# rm ${BED}               # Windowed BED
 rm ${PREFIX}.collapsed  # Single column representation of BED
 # EOF
