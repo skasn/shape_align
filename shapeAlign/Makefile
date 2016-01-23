@@ -23,7 +23,7 @@ all: $(OBJ_DIR) $(BIN_DIR) $(BUILT_OBJECTS)
 
 $(OBJ_DIR) $(BIN_DIR):
 	@mkdir -p $@
-	
+
 $(BUILT_OBJECTS): $(FULL_SOURCES)
 	@echo "  * compiling" $(*F).cpp
 	@$(CXX) $(CXXFLAGS) -c src/$(*F).cpp -o $@ $(LDFLAGS)

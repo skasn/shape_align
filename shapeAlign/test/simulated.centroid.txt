@@ -1,2 +1,2 @@
 Centroid: ref
-Distance: 0.06285
+Distance: 14.1688

@@ -21,11 +21,12 @@ class shapeAlign{
 public:
 	// Constructor
 	shapeAlign(const string& nameList, const vector<string> &files,
-		const int &minS, const int &maxS, const int &wS, const int &wL);
-	
+		const int &minS, const int &maxS, const bool &win, const int &wS,
+		const int &wE, const bool &ign, const int &iS, const int &iE, const int &E);
+
 	// Destructor
 	~shapeAlign(void);
-	
+
 	// Output methods:
 	void printCentroid(void);
 	void printShifts(void);
@@ -33,23 +34,32 @@ public:
 	void printDistanceMatrix(void);
 	void printRevMatrix(void);
 	void printShiftedProfiles(void);
-	
+
 private:
-	
+
 	string nameFile;
 	vector<string> shapeFiles;
-	
+
 	// Min and max shifts
 	int shiftMin;
 	int shiftMax;
-	
+
 	// Alignment window start and end
+	bool window;
 	int winStart;
-	int winLen;
-	
+	int winEnd;
+
+	// Window to ignore
+	bool ignore;
+	int ignStart;
+	int ignEnd;
+
+	// Minimum number of valid bases in overlap
+	int thresh;
+
 	vector<string> names;
 	vector<gsl_matrix*> matrices;
-	
+
 	// The following ars nSites x nSites (square) matrices that
 	// summarize the pairwise distances (D), optimal shifts (S),
 	// and reversal status (R). Reversal status refers to whether
@@ -57,16 +67,17 @@ private:
 	// in a comparison.
 	gsl_matrix* D;
 	gsl_matrix* S;
-	gsl_matrix* R;			
-	
+	gsl_matrix* R;
+
 	int nSites;
 	int m;			// Number of shape parameters
 	int cIdx;		// index of centroid sequence (in names vector)
 	double cDist;	// Distance of centroid to other sites
-	
-	void scaleMatrix(gsl_matrix* M);
-	double normFrobenius(const gsl_matrix* M, const int &iMin,
-		const int &iMax);
+
+	void scaleMatrix(gsl_matrix* M, double min, double max);
+	void scaleMatrixZscore(gsl_matrix *M);
+	double normFrobenius(const gsl_matrix* M);
+	double cosineSim(const gsl_matrix* X, const gsl_matrix *Y);
 	alignData getOptimalShift(gsl_matrix* A1, gsl_matrix* A2);
 	void reverse(gsl_matrix *R);
 	pair<int,double> getCentroid(void);

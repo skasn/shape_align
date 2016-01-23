@@ -31,14 +31,20 @@ int main(int argc, char* argv[]) {
     bool showHelp = false;
     bool haveShapeFiles = false;
     bool haveNameFile = false;
-    
+    bool window = false;
+    bool ignore = false;
+
 	string namesFile;
 	vector<string> shapeFiles;
-	
+
+    // Default max and min shifts
 	int max = 25;
 	int min = -25;
-	int start = 0;
-	int len = -1;
+	int start = -1;
+	int end = -1;
+    int istart = -1;
+    int iend = -1;
+    int entr = 10;
 
     // check to see if we should print out some help
     if(argc <= 1) showHelp = true;
@@ -51,7 +57,7 @@ int main(int argc, char* argv[]) {
         }
     }
     if(showHelp) shapeAlign_help();
-    
+
      for(int i = 1; i < argc; i++) {
 
         int parameterLength = (int)strlen(argv[i]);
@@ -68,35 +74,56 @@ int main(int argc, char* argv[]) {
             while ((i+1) < argc) {
 				shapeFiles.push_back(argv[i+1]);
                 i++;
-            }        
+            }
         }
         else if(PARAMETER_CHECK("-min",4, parameterLength)) {
             if ((i+1) < argc) {
             	stringstream ss(argv[i+1]);
             	ss >> min;
                 i++;
-            }        
+            }
         }
         else if(PARAMETER_CHECK("-max",4, parameterLength)) {
             if ((i+1) < argc) {
             	stringstream ss(argv[i+1]);
             	ss >> max;
                 i++;
-            }        
+            }
         }
         else if(PARAMETER_CHECK("-start",6, parameterLength)) {
             if ((i+1) < argc) {
             	stringstream ss(argv[i+1]);
             	ss >> start;
                 i++;
-            }        
+            }
         }
-        else if(PARAMETER_CHECK("-len",4, parameterLength)) {
+        else if(PARAMETER_CHECK("-end",4, parameterLength)) {
             if ((i+1) < argc) {
             	stringstream ss(argv[i+1]);
-            	ss >> len;
+            	ss >> end;
                 i++;
-            }        
+            }
+        }
+         else if(PARAMETER_CHECK("-istart",7, parameterLength)) {
+            if ((i+1) < argc) {
+                stringstream ss(argv[i+1]);
+                ss >> istart;
+                i++;
+            }
+        }
+        else if(PARAMETER_CHECK("-iend",5, parameterLength)) {
+            if ((i+1) < argc) {
+                stringstream ss(argv[i+1]);
+                ss >> iend;
+                i++;
+            }
+        }
+        else if(PARAMETER_CHECK("-entr",5, parameterLength)) {
+            if ((i+1) < argc) {
+                stringstream ss(argv[i+1]);
+                ss >> entr;
+                i++;
+            }
         }
         else {
             cerr << "*****ERROR: Unrecognized parameter: "
@@ -112,8 +139,30 @@ int main(int argc, char* argv[]) {
         showHelp = true;
     }
 
+    if (start != -1 && end != -1){
+        if (start <= end) {window = true; }
+        else {
+            cerr << "Alignment window start exceeds alignment window end. Ignoring alignment window." << endl;
+        }
+    } else if ((start != -1 || end != -1) && (start == -1 || end == -1)){
+        cerr << "Must define BOTH alignment start and end if -start/-end" << endl;
+        cerr << "flags are used." << endl << endl;
+        showHelp=true;
+    }
+
+    if (istart != -1 && iend != -1){
+        if (istart <= iend) {ignore = true; }
+        else {
+            cerr << "Ignore position start exceeds ignore position end." << endl << "Considering all positions in scoring." << endl;
+        }
+    } else if ((istart != -1 || iend != -1) && (istart == -1 || iend == -1)){
+        cerr << "Must define BOTH ignore position start and end if -istart/-iend" << endl;
+        cerr << "flags are used." << endl << endl;
+        showHelp=true;
+    }
+
     if (!showHelp) {
-        shapeAlign *align = new shapeAlign(namesFile,shapeFiles,min,max,start,len);
+        shapeAlign *align = new shapeAlign(namesFile,shapeFiles,min,max,window,start,end,ignore,istart,iend,entr);
         delete align;
     }
     else {
@@ -140,13 +189,21 @@ void shapeAlign_help(void) {
     cerr << "         in these files is assumed to be the same as in the site" << endl;
     cerr << "         names file." << endl << endl;
     cerr << " Options: " << endl;
+    cerr << " -entr   Minimum number of valid bases in overlap. (Default: 10)." << endl;
     cerr << " -min    Minimum shift. (Default: -25 bp)." << endl;
     cerr << " -max    Maximum shift. (Default: 25 bp)." << endl;
     cerr << " -start  Start of alignment window defined with respect to the" << endl;
     cerr << "         start of the shape window, which is defined as zero." << endl;
-    cerr << "         (Default: 0)." << endl;
-    cerr << " -len    Length of the alignment window. (Default: length of " << endl;
-    cerr << "         shape window)." << endl << endl;
+    cerr << "         (Note: If -start is used, -end must be defined)." << endl;
+    cerr << " -end    End of alignment window defined with respect to the " << endl;
+    cerr << "         start of the shape window, which is defined as zero." << endl;
+    cerr << "         (Note: If -end is used, -start must be defined)." << endl;
+    cerr << " -istart  Start of positions to ignore defined with respect to" << endl;
+    cerr << "         start of the shape window, which is defined as zero." << endl;
+    cerr << "         (Note: If -istart is used, -iend must be defined)." << endl;
+    cerr << " -iend    End of positions to ignore defined with respect to" << endl;
+    cerr << "         start of the shape window, which is defined as zero." << endl;
+    cerr << "         (Note: If -iend is used, -istart must be defined)." << endl << endl;
     exit(1);
 
 }
