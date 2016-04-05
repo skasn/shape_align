@@ -1,4 +1,4 @@
 # shape_align
 Sequence-independent alignment of DNA shape profiles at transcription factor (TF) binding sites identified using chromatin endogenous cleavage and sequencing (ChEC-seq).
 
-`shapeAlign`(shapeAlign/) contains C++ source code implementing a sequence-independent approach for alignment of DNA shape profiles and a detailed description of the algorithm.
+`shapeAlign`(shapeAlign/README.md) contains C++ source code implementing a sequence-independent approach for alignment of DNA shape profiles and a detailed description of the algorithm.

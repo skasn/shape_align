@@ -330,7 +330,6 @@ pair<int,double> shapeAlign::getCentroid(void){
 	gsl_matrix_add_constant(D,1.0);
 
 	int minIdx = gsl_vector_min_index(dists);
-	// int minIdx = gsl_vector_max_index(dists);
 	double dist = gsl_vector_get(dists,minIdx);
 	gsl_vector_free(dists);
 	return make_pair(minIdx,dist);
