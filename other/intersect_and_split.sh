@@ -12,7 +12,7 @@ SC3_SIZES=sacCer3.sizes
 CLASS=(Fast Slow)
 
 # Random sites file
-RSITES=Abf1_annotated_peaks.max.win200.rand.seed.0.bed
+RSITES=random.bed
 
 # Function for returning comma-separated or tab-delimited
 # array values
