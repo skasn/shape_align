@@ -85,66 +85,13 @@ shapeAlign::shapeAlign(const string& nameList, const vector<string> &files,
 
 	cerr << "\tDone reading shape files." << endl;
 
+	// Scale each matrix such that values to go from 1->2
 	cerr << "Scaling matrices." << endl;
 
-	// For the cosine distance, redo the scaling such that
-	// the values that are to be ignored or are outside the alignment
-	// window are replaced with the minimum
-	// for (int idx = 0; idx < nSites; idx++){	// All sites
-	// 	for (int i = 0; i < m; i++){	// Loop over each shape param row in mat
-
-	// 		// Get the row min.
-	// 		gsl_vector_const_view row =gsl_matrix_const_row(matrices[idx],i);
-
-	// 		gsl_vector *rcpy = gsl_vector_alloc(row.vector.size);
-	// 		gsl_vector_memcpy(rcpy,&row.vector);
-
-	// 		// Max out the regions that are to be excluded so these do not interfere with the min
-	// 		for (int j = 0; j < rcpy->size; j++){
-	// 			if (window && (j <= winStart || j >= winEnd))
-	// 				gsl_vector_set(rcpy,j,DBL_MAX);
-	// 			if (ignore && (j >= ignStart && j <= ignEnd))
-	// 				gsl_vector_set(rcpy,j,DBL_MAX);
-	// 		}
-
-	// 		double min = gsl_vector_min(rcpy);
-
-	// 		gsl_vector_free(rcpy);
-
-
-	// 		for (int j = 0; j < matrices[idx]->size2; j++){
-	// 			if ( window && (j <= winStart || j >= winEnd ))
-	// 				// gsl_matrix_set(matrices[idx],i,j,GSL_NAN);
-	// 				gsl_matrix_set(matrices[idx],i,j,min);
-
-	// 			if ( ignore && (j >= ignStart && j <= ignEnd ))
-	// 				// gsl_matrix_set(matrices[idx],i,j,GSL_NAN);
-	// 				gsl_matrix_set(matrices[idx],i,j,min);
-	// 		}
-	// 	}
-	// }
-
-	// Scale each matrix such that values to go from 1->2
 	for (size_t i = 0; i < nSites; i++)
-		// scaleMatrix(matrices[i],1,20001);
 		scaleMatrixZscore(matrices[i]);
 
 	cerr << "\tDone scaling matrices." << endl;
-
-	// Fill in areas outside of the alignment window or
-	// within the region to ignore with NaNs
-	// for (int idx = 0; idx < nSites; idx++){	// All sites
-	// 	for (int i = 0; i < m; i++){	// Loop over each shape param row in mat
-	// 		for (int j = 0; j < matrices[idx]->size2; j++){
-	// 			if ( window && (j <= winStart || j >= winEnd ))
-	// 				// gsl_matrix_set(matrices[idx],i,j,GSL_NAN);
-	// 				gsl_matrix_set(matrices[idx],i,j,0);
-	// 			if ( ignore && (j >= ignStart && j <= ignEnd ))
-	// 				// gsl_matrix_set(matrices[idx],i,j,GSL_NAN);
-	// 				gsl_matrix_set(matrices[idx],i,j,0);
-	// 		}
-	// 	}
-	// }
 
 	// Loop over the sites and compute all pairwise distances -- note that
 	// distances are symmetric: D[a,b] = D[b,a]. But, the shifts computed
@@ -157,6 +104,7 @@ shapeAlign::shapeAlign(const string& nameList, const vector<string> &files,
 		// Parallelize this portion: data races shouldn't be a concern
 		// since no threads should be writing to the same block of
 		// memory
+
 		#pragma omp parallel
 		{
 			#pragma omp master
@@ -179,48 +127,12 @@ shapeAlign::shapeAlign(const string& nameList, const vector<string> &files,
 				// Get the optimal shift and distance for the reverse matrix
 				alignData resultsRev = getOptimalShift(matrices[i],rev);
 
-				if (! gsl_finite(results.score))
-						results.score = GSL_NAN;
-
-				if (! gsl_finite(resultsRev.score))
-						resultsRev.score = GSL_NAN;
-
-				// Determine whether the forward or reverse matrix gives
-				// the optimal score.
-				// if (gsl_finite(results.score) && gsl_finite(resultsRev.score)){
-				// 	if (resultsRev.score < results.score){
-				// 		results.score=resultsRev.score;
-				// 		results.shift=resultsRev.shift;
-				// 		results.rev = 1;
-				// 	} else {
-				// 		results.rev = 0;
-				// 	}
-				// } else {
-				// 	if (gsl_finite(resultsRev.score)){
-				// 		results.score = resultsRev.score;
-				// 		results.shift = resultsRev.shift;
-				// 		results.rev = 1;
-				// 	} else {
-				// 		results.rev = 0;
-				// 	}
-				// }
-
-				if (gsl_finite(results.score) && gsl_finite(resultsRev.score)){
-					if (resultsRev.score > results.score){
-						results.score=resultsRev.score;
-						results.shift=resultsRev.shift;
-						results.rev = 1;
-					} else {
-						results.rev = 0;
-					}
+				if (results.score >= resultsRev.score){
+					results.rev = 0;
 				} else {
-					if (gsl_finite(resultsRev.score)){
-						results.score = resultsRev.score;
-						results.shift = resultsRev.shift;
-						results.rev = 1;
-					} else {
-						results.rev = 0;
-					}
+					results.score = resultsRev.score;
+					results.shift = resultsRev.shift;
+					results.rev = 1;
 				}
 
 				// Store the data in the matrices used for tracking
@@ -252,7 +164,7 @@ shapeAlign::shapeAlign(const string& nameList, const vector<string> &files,
 
 // 	cerr << "Printing matrices to files." << endl;
 // 	printShiftMatrix();
-	printDistanceMatrix();
+	// printDistanceMatrix();
 // 	printRevMatrix();
 // 	cerr << "\tDone." << endl;
 
@@ -278,11 +190,10 @@ void shapeAlign::reverse(gsl_matrix* rev){
 	return;
 }
 
-// For a number of horizontal shifts, find the shift that minimizes
-// the Frobenius norm
+// For a number of horizontal shifts, find the optimal shift
 alignData shapeAlign::getOptimalShift(gsl_matrix *A1, gsl_matrix *A2){
 	alignData results;			// Container for holding optimal shift results
-	results.score = GSL_NAN;	// Initialize results.score to a large number
+	results.score = -10000;		// Initialize results.score to a large negative number
 	results.shift = 0;
 	double score;
 
@@ -314,10 +225,9 @@ alignData shapeAlign::getOptimalShift(gsl_matrix *A1, gsl_matrix *A2){
 			}
 		}
 
-		// score = cosineSim(&subA1v.matrix,&subA2v.matrix);
 		score = cosineSim(S1,S2);
 
-		if (gsl_finite(score) && (score > results.score || gsl_isnan(results.score))){
+		if (score > results.score ){
 			results.score = score;
 			results.shift = s;
 		}
@@ -325,23 +235,6 @@ alignData shapeAlign::getOptimalShift(gsl_matrix *A1, gsl_matrix *A2){
 		gsl_matrix_free(S1);
 		gsl_matrix_free(S2);
 
-		// // Get the deltas
-		// gsl_matrix *delta = gsl_matrix_alloc(m,delSize);
-		// gsl_matrix_memcpy(delta,&subA1.matrix);
-		// gsl_matrix_sub(delta,&subA2.matrix);
-
-		// // Compute the normalized Frobenius distance
-		// score = normFrobenius(delta);
-
-		// // If the score is better than the current optimal score,
-		// // keep it
-		// if (gsl_finite(score) && (score < results.score || gsl_isnan(results.score))){
-		// 	results.score = score;
-		// 	results.shift = s;
-		// }
-
-		// // Clear up memory associated with delta
-		// gsl_matrix_free(delta);
 	}
 	return results;
 }
@@ -392,7 +285,8 @@ double shapeAlign::cosineSim(const gsl_matrix* X, const gsl_matrix *Y)
 	return cosSim;
 }
 
-// Scale each row in a matrix to have values in a given range
+// Scale each row in a matrix to have values in a given range [a,b]
+// f(x) = a + (b-a)(x-min)/(max-min)
 void shapeAlign::scaleMatrix(gsl_matrix *M, double min, double max){
 	for (size_t i = 0; i < M->size1; i++){
 		double rmin,rmax;	// row max and min
@@ -426,20 +320,20 @@ void shapeAlign::scaleMatrixZscore(gsl_matrix *M){
 pair<int,double> shapeAlign::getCentroid(void){
 	gsl_vector * dists = gsl_vector_alloc(nSites);
 
+	gsl_matrix_add_constant(D,-1.0);
+
 	for (size_t i = 0; i < nSites; i++){
 		gsl_vector_view column = gsl_matrix_column(D,i);
 		gsl_vector_set(dists,i,gsl_blas_dnrm2(&column.vector));
 	}
 
-	// int minIdx = gsl_vector_min_index(dists);
-	// double dist = gsl_vector_get(dists,minIdx);
-	// gsl_vector_free(dists);
-	// return make_pair(minIdx,dist);
+	gsl_matrix_add_constant(D,1.0);
 
-	int maxIdx = gsl_vector_max_index(dists);
-	double dist = gsl_vector_get(dists,maxIdx);
+	int minIdx = gsl_vector_min_index(dists);
+	// int minIdx = gsl_vector_max_index(dists);
+	double dist = gsl_vector_get(dists,minIdx);
 	gsl_vector_free(dists);
-	return make_pair(maxIdx,dist);
+	return make_pair(minIdx,dist);
 }
 
 void shapeAlign::printCentroid(void){
