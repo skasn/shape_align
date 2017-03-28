@@ -2,7 +2,7 @@
 
 Instructions for use:
 
-1. Get BED files (available in `sites/bed`) and FASTA files (available in `sites/fasta`). The number of sites for each window size used the analysis is available in `sites/num_sites.txt`.
+1. Get BED files (available in [`sites/bed`](https://github.com/sivakasinathan/shape_align/tree/master/other/sites/bed)) and FASTA files (available in [`sites/fasta`](https://github.com/sivakasinathan/shape_align/tree/master/other/sites/fasta)). The number of sites for each window size used the analysis is available in [`sites/num_sites.txt`](https://github.com/sivakasinathan/shape_align/blob/master/other/sites/num_sites.txt).
 
 1. Get sequences from the FASTA files (referenced above) corresponding to the sites in the BED files (also referenced above). Create a separate FASTA file for each of the desired analysis classes (i.e., “Fast” and “Slow” files for each TF).
 
