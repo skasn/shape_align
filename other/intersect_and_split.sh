@@ -20,7 +20,7 @@ function csvout { local IFS=","; echo "$*"; }
 function tabout { local IFS=$'\t'; echo "$*"; }
 
 # Window half-widths
-HWIDTHS=(25 50 75 100 125 150 175 200)
+HWIDTHS=(25 50 75 100 125 150 175 200 225 250 275 300)
 
 for W in ${HWIDTHS[@]}; do
     W2=$((2*W))
@@ -31,7 +31,7 @@ for W in ${HWIDTHS[@]}; do
     for arg; do
         SUFF=win.${W2}.${arg##*.}
         SLOPPED[${CTR}]=`basename ${arg%.*}.${SUFF}`
-        bedtools slop -b ${W2} -i ${arg} -g ${SC3_SIZES} > ${SLOPPED[${CTR}]}
+        bedtools slop -b ${W} -i ${arg} -g ${SC3_SIZES} > ${SLOPPED[${CTR}]}
         CTR=$((CTR+1))
     done
 
