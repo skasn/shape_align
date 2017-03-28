@@ -10,7 +10,7 @@ Instructions for use:
 
 1. Convert DNAshapeR comma-separated output to tab-delimited format. The first column should be the site name or other unique identifier and subsequent columns should contain the values for the shape parameters.
 
-1. Install dependencies for shapeAlign following the instructions from the distributors of the following packages: [OpenMP](http://openmp.org/wp/) and [GSL](http://www.gnu.org/software/gsl/).
+1. Install dependencies for shapeAlign following the instructions from the distributors of the following packages: [OpenMP](http://openmp.org/) and [GSL](http://www.gnu.org/software/gsl/).
 
 1. Compile shapeAlign: Once the dependencies are installed, download the [shapeAlign source code](https://github.com/sivakasinathan/shape_align/tree/master/shapeAlign), navigate to the directory containing the makefile packaged with shapeAlign and type ‘make.’ Issues during compilation with dependencies can be resolved by modifying the makefile by including the appropriate paths to the GSL/OpenMP dependencies or the version of the g++ compiler indicated in the makefile.
 
@@ -18,7 +18,7 @@ Instructions for use:
 
 1.  Run shapeAlign using the following parameters:
 
-./shapeAlign -start 50 -end 141 -min -25 -max 25 -istart 97 -iend 102 –n [path to names file] –f [shape file 1] … [shape file 4]
+    `./shapeAlign -start 50 -end 141 -min -25 -max 25 -istart 97 -iend 102 –n [path to names file] –f [shape file 1] … [shape file 4]`
 
 1. Determine averages for shape features ignoring ‘NA’ values and correlate average profiles using, e.g., Excel, R, or Python/Pandas.
 
