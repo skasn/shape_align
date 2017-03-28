@@ -1,4 +1,4 @@
-# FASTA files used for shape alignment
+# BED and FASTA files used for shape alignment
 
 Sequences are centered on peak midpoints; sequence names contain midpoint and Fast/Slow designation where appropriate. Other data in sequence names are taken from the Supp. Table of Zentner, et al. Nat Comm 2015.
 
